@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>star</title>
+    <style type="text/css">
+        html,body{
+            margin: 0;
+            padding: 0;
+        }
+        .canvasbox{
+            width: 1000px;
+            height: 500px;
+            margin: 0 auto;
+        }
+        canvas{
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="canvasbox">
+        <canvas id="canvas" width="1000" height="500"></canvas>
+    </div>
+    <script type="text/javascript">
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var CW = canvas.width,CH = canvas.height;
+        var dotgap = 100; // 点与点之间的距离
+        var dotNumbers = 25; // 默认生成dot数
+        var dotArray = []; // 要绘制的数组
+        var removeDotArray = []; // 要移除的数据  移除后重新生成
+        // dot构造函数
+        function dot(index,speed,opacity){
+            var px = Math.ceil(Math.random() * CW),
+                py = Math.ceil(Math.random() * CH);
+            this.x = px;
+            this.y = py;
+            
+            this.sx = Math.random() > 0.5 ? speed : -speed;
+            this.sy = Math.random() > 0.5 ? speed : -speed;
+
+            this.color = 'rgba(255,255,255,'+ opacity +')';
+            this.radius = 2;
+            this.index = index;
+        }
+        // 生成坐标数组
+        function generate(){
+            // 生成dot
+            var speed = opacity = 0;
+            for(var i = 0;i < dotNumbers;i++){
+                speed = Math.random() > 0.8 ? 1 : 0.5;
+                opacity = Math.random() > 0.8 ? 1 : 0.6;
+                dotArray[i] = new dot(i,speed,opacity);
+            };
+        }
+        // 画点
+        function drawDot(){
+            dotArray.forEach(function(ele,index){
+                context.beginPath();
+                context.fillStyle = ele.color;
+                context.arc(ele.x,ele.y,ele.radius,0,2*Math.PI);
+                context.fill();
+                // 更改位置
+                ele.x += ele.sx;
+                ele.y += ele.sy;
+                // 是否已经移出画布
+                if(ele.x <= -ele.radius || ele.x > CW + ele.radius || ele.y <= -ele.radius || ele.y > CH + ele.radius){
+                    removeDotArray[removeDotArray.length] = ele.index;
+                }
+            });
+        }
+        // 画线
+        function drawLine(){
+            context.strokeStyle = '#666';
+            for(var i = 0;i<dotNumbers;i++){
+                for(var j = 0;j<dotNumbers;j++){
+                    if(i === j) continue;
+                    context.beginPath();
+                    if(Math.sqrt(Math.pow(Math.abs(dotArray[i].x - dotArray[j].x),2) + Math.pow(Math.abs(dotArray[i].y - dotArray[j].y),2)) <= dotgap){
+                        context.moveTo(dotArray[i].x,dotArray[i].y);
+                        context.lineTo(dotArray[j].x,dotArray[j].y);
+                        context.stroke();
+                    }
+                }
+            }
+        }
+        // 移除屏幕的点 重新生成
+        function regenerate(){
+            var speed = opacity = 0;
+            removeDotArray.forEach(function(value,index){
+                speed = Math.random() > 0.8 ? 1 : 0.5;
+                opacity = Math.random() > 0.8 ? 1 : 0.6;
+                dotArray[value] = new dot(value,speed,opacity);
+            });
+            removeDotArray = [];
+        }
+        function animate(){
+            context.clearRect(0,0,CW,CH);
+            drawDot();
+            drawLine();
+            if(removeDotArray.length){
+                regenerate();
+            }
+            requestAnimationFrame(animate);
+        }
+        generate();
+        drawDot();
+        drawLine();
+        animate();
+        console.log(dotArray);
+    </script>
+</body>
+</html>
